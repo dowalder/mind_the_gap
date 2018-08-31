@@ -41,16 +41,15 @@ def stylize(args):
     assert output_path.is_dir(), "--output-image must be a directory"
 
     if content_path.is_dir():
-        content_imgs = \
-            [src.file_op.load_image(img.as_posix(), scale=args.content_scale) for img in content_path.glob("*.jpg")]
+        content_imgs = [img for img in content_path.glob("*.jpg")]
     else:
-        content_imgs = [src.file_op.load_image(content_path.as_posix(), scale=args.content_scale)]
-
-    content_imgs = [content_transform(img).unsqueeze(0) for img in content_imgs]
+        content_imgs = [content_path]
 
     with torch.no_grad():
         for idx, img in enumerate(content_imgs):
-            output = style_model(img.to(args.device)).cpu()
+            img = src.file_op.load_image(img.as_posix(), scale=args.content_scale)
+            img = content_transform(img).unsqueeze(0).to(args.device)
+            output = style_model(img).cpu()
             path = output_path / "{}.jpg".format(idx)
             src.file_op.save_image(path.as_posix(), output[0])
 
