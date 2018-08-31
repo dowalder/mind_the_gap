@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 original version from:
 https://github.com/pytorch/examples/blob/master/fast_neural_style/neural_style/neural_style.py
