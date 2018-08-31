@@ -57,10 +57,10 @@ def train(args):
         if len(styles) < args.batch_size:
             raise ValueError("Found only {} images in {}, but need at least {}".format(
                 len(styles), path, args.batch_size))
-        style = torch.empty((args.batch_size, 3, args.style_size, args.style_size), device=args.device,
+        style = torch.empty(size=(args.batch_size, 3, args.style_size, args.style_size), device=args.device,
                             dtype=torch.float)
         for idx, st in enumerate(styles):
-            style[idx, :, :, :] = style
+            style[idx, :, :, :] = st
 
     else:
         style = src.file_op.load_image(args.style_image, size=args.style_size)
