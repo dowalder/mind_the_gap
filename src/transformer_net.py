@@ -8,15 +8,15 @@ import torch
 
 
 class TransformerNet(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, norm_layer=torch.nn.InstanceNorm2d):
         super(TransformerNet, self).__init__()
         # Initial convolution layers
         self.conv1 = ConvLayer(3, 32, kernel_size=9, stride=1)
-        self.in1 = torch.nn.InstanceNorm2d(32, affine=True)
+        self.in1 = norm_layer(32, affine=True)
         self.conv2 = ConvLayer(32, 64, kernel_size=3, stride=2)
-        self.in2 = torch.nn.InstanceNorm2d(64, affine=True)
+        self.in2 = norm_layer(64, affine=True)
         self.conv3 = ConvLayer(64, 128, kernel_size=3, stride=2)
-        self.in3 = torch.nn.InstanceNorm2d(128, affine=True)
+        self.in3 = norm_layer(128, affine=True)
         # Residual layers
         self.res1 = ResidualBlock(128)
         self.res2 = ResidualBlock(128)
@@ -25,9 +25,9 @@ class TransformerNet(torch.nn.Module):
         self.res5 = ResidualBlock(128)
         # Upsampling Layers
         self.deconv1 = UpsampleConvLayer(128, 64, kernel_size=3, stride=1, upsample=2)
-        self.in4 = torch.nn.InstanceNorm2d(64, affine=True)
+        self.in4 = norm_layer(64, affine=True)
         self.deconv2 = UpsampleConvLayer(64, 32, kernel_size=3, stride=1, upsample=2)
-        self.in5 = torch.nn.InstanceNorm2d(32, affine=True)
+        self.in5 = norm_layer(32, affine=True)
         self.deconv3 = ConvLayer(32, 3, kernel_size=9, stride=1)
         # Non-linearities
         self.relu = torch.nn.ReLU()
@@ -66,12 +66,12 @@ class ResidualBlock(torch.nn.Module):
     recommended architecture: http://torch.ch/blog/2016/02/04/resnets.html
     """
 
-    def __init__(self, channels):
+    def __init__(self, channels, norm_layer=torch.nn.InstanceNorm2d):
         super(ResidualBlock, self).__init__()
         self.conv1 = ConvLayer(channels, channels, kernel_size=3, stride=1)
-        self.in1 = torch.nn.InstanceNorm2d(channels, affine=True)
+        self.in1 = norm_layer(channels, affine=True)
         self.conv2 = ConvLayer(channels, channels, kernel_size=3, stride=1)
-        self.in2 = torch.nn.InstanceNorm2d(channels, affine=True)
+        self.in2 = norm_layer(channels, affine=True)
         self.relu = torch.nn.ReLU()
 
     def forward(self, x):

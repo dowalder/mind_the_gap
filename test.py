@@ -9,6 +9,7 @@ commit: 645c7c386e62d2fb1d50f4621c1a52645a13869f
 import argparse
 import re
 import pathlib
+import time
 
 import torch
 import torch.optim
@@ -46,11 +47,14 @@ def stylize(args):
         content_imgs = [content_path]
 
     with torch.no_grad():
-        for idx, img in enumerate(content_imgs):
-            img = src.file_op.load_image(img.as_posix(), scale=args.content_scale)
+        for idx, img_file in enumerate(content_imgs):
+            img = src.file_op.load_image(img_file.as_posix(), scale=args.content_scale)
+            t = time.time()
             img = content_transform(img).unsqueeze(0).to(args.device)
+            if args.verbose:
+                print("took {:4.4f}s".format(time.time() - t))
             output = style_model(img).cpu()
-            path = output_path / "{}.jpg".format(idx)
+            path = output_path / img_file.name
             src.file_op.save_image(path.as_posix(), output[0])
 
 
@@ -67,6 +71,7 @@ def main():
                                  help="saved model to be used for stylizing the image. If file ends in .pth - PyTorch path is used, if in .onnx - Caffe2 path")
     parser.add_argument("--cuda", type=int, required=True,
                                  help="set it to 1 for running on GPU, 0 for CPU")
+    parser.add_argument("--verbose", action="store_true")
 
     args = parser.parse_args()
 

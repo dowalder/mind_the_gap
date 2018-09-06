@@ -25,6 +25,15 @@ import src.file_op
 import src.utils
 
 
+def get_norm_layer(layer_type: str):
+    if layer_type == "instance":
+        return torch.nn.InstanceNorm2d
+    elif layer_type == "batch":
+        return torch.nn.BatchNorm2d
+    else:
+        raise ValueError("invalid normalization layer: {}".format(layer_type))
+
+
 def train(args):
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -38,7 +47,7 @@ def train(args):
     train_dataset = torchvision.datasets.ImageFolder(args.dataset, transform)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
 
-    transformer = src.transformer_net.TransformerNet().to(args.device)
+    transformer = src.transformer_net.TransformerNet(get_norm_layer(args.norm)).to(args.device)
     optimizer = torch.optim.Adam(transformer.parameters(), args.lr)
     mse_loss = torch.nn.MSELoss()
 
@@ -57,7 +66,8 @@ def train(args):
         if len(styles) < args.batch_size:
             raise ValueError("Found only {} images in {}, but need at least {}".format(
                 len(styles), path, args.batch_size))
-        style = torch.empty(size=(args.batch_size, 3, args.style_size, args.style_size), device=args.device,
+        img_size = styles[0].shape
+        style = torch.empty(size=(args.batch_size, *img_size), device=args.device,
                             dtype=torch.float)
         for idx, st in enumerate(styles):
             style[idx, :, :, :] = st
@@ -169,6 +179,8 @@ def main():
                                   help="number of batches after which a checkpoint of the trained model will be created")
     parser.add_argument("--use-multiple-styles", action="store_true",
                         help="training from multiple style image, not only one")
+    parser.add_argument("--norm", default="instance", choices=["instance", "batch"],
+                        help="normalization layer to use")
 
     args = parser.parse_args()
 
