@@ -7,6 +7,15 @@ commit: 645c7c386e62d2fb1d50f4621c1a52645a13869f
 import torch
 
 
+def get_norm_layer(layer_type: str):
+    if layer_type == "instance":
+        return torch.nn.InstanceNorm2d
+    elif layer_type == "batch":
+        return torch.nn.BatchNorm2d
+    else:
+        raise ValueError("invalid normalization layer: {}".format(layer_type))
+
+
 class TransformerNet(torch.nn.Module):
     def __init__(self, norm_layer=torch.nn.InstanceNorm2d):
         super(TransformerNet, self).__init__()

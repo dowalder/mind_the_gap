@@ -25,15 +25,6 @@ import src.file_op
 import src.utils
 
 
-def get_norm_layer(layer_type: str):
-    if layer_type == "instance":
-        return torch.nn.InstanceNorm2d
-    elif layer_type == "batch":
-        return torch.nn.BatchNorm2d
-    else:
-        raise ValueError("invalid normalization layer: {}".format(layer_type))
-
-
 def train(args):
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -47,7 +38,7 @@ def train(args):
     train_dataset = torchvision.datasets.ImageFolder(args.dataset, transform)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
 
-    transformer = src.transformer_net.TransformerNet(get_norm_layer(args.norm)).to(args.device)
+    transformer = src.transformer_net.TransformerNet(src.transformer_net.get_norm_layer(args.norm)).to(args.device)
     optimizer = torch.optim.Adam(transformer.parameters(), args.lr)
     mse_loss = torch.nn.MSELoss()
 
