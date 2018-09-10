@@ -170,7 +170,7 @@ def main():
                                   help="number of batches after which a checkpoint of the trained model will be created")
     parser.add_argument("--use-multiple-styles", action="store_true",
                         help="training from multiple style image, not only one")
-    parser.add_argument("--norm", default="instance", choices=["instance", "batch"],
+    parser.add_argument("--norm", default="instance", choices=["instance", "batch", "none"],
                         help="normalization layer to use")
 
     args = parser.parse_args()

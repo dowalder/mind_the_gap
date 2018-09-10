@@ -12,6 +12,8 @@ def get_norm_layer(layer_type: str):
         return torch.nn.InstanceNorm2d
     elif layer_type == "batch":
         return torch.nn.BatchNorm2d
+    elif layer_type == "none":
+        return EmptyLayer
     else:
         raise ValueError("invalid normalization layer: {}".format(layer_type))
 
@@ -54,6 +56,15 @@ class TransformerNet(torch.nn.Module):
         y = self.relu(self.in5(self.deconv2(y)))
         y = self.deconv3(y)
         return y
+
+
+class EmptyLayer(torch.nn.Module):
+
+    def __init__(self, *args, **kwargs):
+        super(EmptyLayer, self).__init__()
+
+    def forward(self, x):
+        return x
 
 
 class ConvLayer(torch.nn.Module):

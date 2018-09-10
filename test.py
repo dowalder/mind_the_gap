@@ -30,10 +30,11 @@ def stylize(args):
 
     style_model = src.transformer_net.TransformerNet(src.transformer_net.get_norm_layer(args.norm))
     state_dict = torch.load(args.model)
-    # remove saved deprecated running_* keys in InstanceNorm from the checkpoint
-    for k in list(state_dict.keys()):
-        if re.search(r'in\d+\.running_(mean|var)$', k):
-            del state_dict[k]
+    if args.norm == "instance":
+        # remove saved deprecated running_* keys in InstanceNorm from the checkpoint
+        for k in list(state_dict.keys()):
+            if re.search(r'in\d+\.running_(mean|var)$', k):
+                del state_dict[k]
     style_model.load_state_dict(state_dict)
     style_model.to(args.device)
 
@@ -72,7 +73,7 @@ def main():
     parser.add_argument("--cuda", type=int, required=True,
                                  help="set it to 1 for running on GPU, 0 for CPU")
     parser.add_argument("--verbose", action="store_true")
-    parser.add_argument("--norm", choices=["batch", "instance"], default="batch")
+    parser.add_argument("--norm", choices=["batch", "instance", "none"], default="instance")
 
     args = parser.parse_args()
 
