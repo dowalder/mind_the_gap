@@ -34,7 +34,7 @@ class GramStyle:
             torchvision.transforms.Lambda(lambda x: x.mul(255))
         ])
         self.vgg = vgg
-        self.styles = None
+        self.img_paths = None
 
     def compute(self, args):
 
@@ -43,20 +43,22 @@ class GramStyle:
             if not path.is_dir():
                 raise ValueError("If --use-multiple-styles is specified, --style-image must be a folder containing "
                                  "multiple style images")
-            if self.styles is None:
-                self.styles = [src.file_op.load_image(img, size=args.style_size) for img in path.glob("*.jpg")]
-                self.styles = [self.style_transform(style) for style in self.styles]
+            if self.img_paths is None:
+                self.img_paths = list(path.glob("*.jpg"))
+                if len(self.img_paths) < args.batch_size:
+                    raise ValueError("Found only {} images in {}, but need at least {}".format(
+                        len(self.img_paths), path, args.batch_size))
 
-            if len(self.styles) < args.batch_size:
-                raise ValueError("Found only {} images in {}, but need at least {}".format(
-                    len(self.styles), path, args.batch_size))
-            img_size = self.styles[0].shape
-            style = torch.empty(size=(args.batch_size, *img_size), device=args.device, dtype=torch.float)
-            style_idxs = list(range(len(self.styles)))
+            style_idxs = list(range(len(self.img_paths)))
             style_idxs = random.shuffle(style_idxs)
+            imgs = [src.file_op.load_image(self.img_paths[style_idxs[idx]]) for idx in range(args.batch_size)]
+            imgs = [self.style_transform(img) for img in imgs]
 
-            for idx in range(args.batch_size):
-                style[idx, :, :, :] = self.styles[style_idxs[idx]]
+            img_size = imgs[0].shape
+            style = torch.empty(size=(args.batch_size, *img_size), device=args.device, dtype=torch.float)
+
+            for idx, img in enumerate(imgs):
+                style[idx, :, :, :] = img
 
         else:
             style = src.file_op.load_image(args.style_image, size=args.style_size)
@@ -117,7 +119,7 @@ def train(args):
 
             if args.random_sample_batch:
                 gram_style = gram_styler.compute(args)
-                
+
             for ft_y, gm_s in zip(features_y, gram_style):
                 gm_y = src.utils.gram_matrix(ft_y)
                 style_loss += mse_loss(gm_y, gm_s[:n_batch, :, :])
