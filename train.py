@@ -50,7 +50,7 @@ class GramStyle:
                         len(self.img_paths), path, args.batch_size))
 
             style_idxs = list(range(len(self.img_paths)))
-            style_idxs = random.shuffle(style_idxs)
+            random.shuffle(style_idxs)
             imgs = [src.file_op.load_image(self.img_paths[style_idxs[idx]]) for idx in range(args.batch_size)]
             imgs = [self.style_transform(img) for img in imgs]
 
