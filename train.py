@@ -78,15 +78,11 @@ def train(args):
     transform = [
         torchvision.transforms.Resize(args.image_size),
         torchvision.transforms.CenterCrop(args.image_size),
-    ]
-    if args.grayscale:
-        transform.append(torchvision.transforms.Grayscale())
-    transform += [
         torchvision.transforms.ToTensor(),
         torchvision.transforms.Lambda(lambda x: x.mul(255.0))
     ]
     transform = torchvision.transforms.Compose(transform)
-    
+
     train_dataset = torchvision.datasets.ImageFolder(args.dataset, transform)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
 
@@ -115,7 +111,10 @@ def train(args):
             optimizer.zero_grad()
 
             x = x.to(args.device)
-            y = transformer(x)
+            if args.grayscale:
+                y = transformer(x[:, 0] * 0.3 + x[:, 1] * 0.59 + x[:, 2] * 0.11)
+            else:
+                y = transformer(x)
 
             y = src.utils.normalize_batch(y)
             x = src.utils.normalize_batch(x)
