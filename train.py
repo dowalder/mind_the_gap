@@ -75,16 +75,26 @@ def train(args):
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
-    transform = torchvision.transforms.Compose([
+    transform = [
         torchvision.transforms.Resize(args.image_size),
         torchvision.transforms.CenterCrop(args.image_size),
+    ]
+    if args.grayscale:
+        transform.append(torchvision.transforms.Grayscale())
+    transform += [
         torchvision.transforms.ToTensor(),
-        torchvision.transforms.Lambda(lambda x: x.mul(255))
-    ])
+        torchvision.transforms.Lambda(lambda x: x.mul(255.0))
+    ]
+    transform = torchvision.transforms.Compose(transform)
+    
     train_dataset = torchvision.datasets.ImageFolder(args.dataset, transform)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
 
-    transformer = src.transformer_net.TransformerNet(src.transformer_net.get_norm_layer(args.norm)).to(args.device)
+    transformer = src.transformer_net.TransformerNet(
+        norm_layer=src.transformer_net.get_norm_layer(args.norm),
+        input_channels=(1 if args.grayscale else 3)
+    ).to(args.device)
+
     optimizer = torch.optim.Adam(transformer.parameters(), args.lr)
     mse_loss = torch.nn.MSELoss()
 
@@ -200,6 +210,7 @@ def main():
                         help="normalization layer to use")
     parser.add_argument("--random-sample-batch", action="store_true",
                         help="sample at every iteration a batch of images as style images")
+    parser.add_argument("--grayscale_input", action="store_true", help="uses grayscale input to the network")
 
     args = parser.parse_args()
 

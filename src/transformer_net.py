@@ -19,10 +19,10 @@ def get_norm_layer(layer_type: str):
 
 
 class TransformerNet(torch.nn.Module):
-    def __init__(self, norm_layer=torch.nn.InstanceNorm2d):
+    def __init__(self, norm_layer=torch.nn.InstanceNorm2d, input_channels=3):
         super(TransformerNet, self).__init__()
         # Initial convolution layers
-        self.conv1 = ConvLayer(3, 32, kernel_size=9, stride=1)
+        self.conv1 = ConvLayer(input_channels, 32, kernel_size=9, stride=1)
         self.in1 = norm_layer(32, affine=True)
         self.conv2 = ConvLayer(32, 64, kernel_size=3, stride=2)
         self.in2 = norm_layer(64, affine=True)
