@@ -88,7 +88,8 @@ def train(args):
 
     transformer = src.transformer_net.TransformerNet(
         norm_layer=src.transformer_net.get_norm_layer(args.norm),
-        input_channels=(1 if args.grayscale else 3)
+        input_channels=(1 if args.grayscale else 3),
+        coord_conv=args.coord_conv
     ).to(args.device)
 
     optimizer = torch.optim.Adam(transformer.parameters(), args.lr)
@@ -112,7 +113,7 @@ def train(args):
 
             x = x.to(args.device)
             if args.grayscale:
-                y = transformer(x[:, 0] * 0.3 + x[:, 1] * 0.59 + x[:, 2] * 0.11)
+                y = transformer((x[:, 0] * 0.3 + x[:, 1] * 0.59 + x[:, 2] * 0.11).unsqueeze(1))
             else:
                 y = transformer(x)
 
@@ -209,7 +210,8 @@ def main():
                         help="normalization layer to use")
     parser.add_argument("--random-sample-batch", action="store_true",
                         help="sample at every iteration a batch of images as style images")
-    parser.add_argument("--grayscale_input", action="store_true", help="uses grayscale input to the network")
+    parser.add_argument("--grayscale", action="store_true", help="uses grayscale input to the network")
+    parser.add_argument("--coord_conv", action="store_true", help="use coord conv layers instead of normal conv")
 
     args = parser.parse_args()
 

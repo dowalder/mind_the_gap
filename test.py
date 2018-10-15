@@ -23,12 +23,17 @@ import src.file_op
 
 def stylize(args):
 
-    content_transform = transforms.Compose([
+    content_transform = [transforms.Grayscale()] if args.grayscale else []
+    content_transform += [
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.mul(255))
-    ])
+    ]
+    content_transform = transforms.Compose(content_transform)
 
-    style_model = src.transformer_net.TransformerNet(src.transformer_net.get_norm_layer(args.norm))
+    style_model = src.transformer_net.TransformerNet(
+        norm_layer=src.transformer_net.get_norm_layer(args.norm),
+        input_channels=(1 if args.grayscale else 3)
+    )
     state_dict = torch.load(args.model)
     if args.norm == "instance":
         # remove saved deprecated running_* keys in InstanceNorm from the checkpoint
@@ -74,6 +79,7 @@ def main():
                                  help="set it to 1 for running on GPU, 0 for CPU")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--norm", choices=["batch", "instance", "none"], default="instance")
+    parser.add_argument("--grayscale", action="store_true", help="convert the image to grayscale before transformation")
 
     args = parser.parse_args()
 

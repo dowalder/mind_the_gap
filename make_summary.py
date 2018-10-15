@@ -23,7 +23,7 @@ HTML_BODY = """<!DOCTYPE html>
 TABLE_ROW = """<tr>{content}</tr>"""
 TABLE_HEADER = """<th>{content}</th>"""
 TABLE_CELL = """<td>{content}</td>"""
-IMG_CELL = """<td><img src={path} border=3 height=480 width=640></img></td>"""
+IMG_CELL = """<td><img src={path} border=3 height=120 width=160></img></td>"""
 
 
 def make_html(path: pathlib.Path, max_images=30):
