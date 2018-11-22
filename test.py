@@ -35,7 +35,7 @@ def stylize(args):
         input_channels=(1 if args.grayscale else 3),
         coord_conv=args.coord_conv
     )
-    state_dict = torch.load(args.model)
+    state_dict = torch.load(args.wheights)
     if args.norm == "instance":
         # remove saved deprecated running_* keys in InstanceNorm from the checkpoint
         for k in list(state_dict.keys()):
@@ -44,50 +44,40 @@ def stylize(args):
     style_model.load_state_dict(state_dict)
     style_model.to(args.device)
 
-    content_path = pathlib.Path(args.content_image)
-    output_path = pathlib.Path(args.output_image)
-    assert output_path.is_dir(), "--output-image must be a directory"
+    src_folder = pathlib.Path(args.src_dir)
+    tgt_folder = pathlib.Path(args.tgt_dir)
+    assert tgt_folder.is_dir()
+    assert src_folder.is_dir()
 
-    if content_path.is_dir():
-        content_imgs = []
+    def transform_folder(src_dir: pathlib.Path, tgt_dir: pathlib.Path):
+        t = time.time()
+        for img_path in src_dir.iterdir():
+            if img_path.is_dir() and args.recursive:
+                tgt = tgt_dir / img_path.name
+                tgt.mkdir(exist_ok=True)
+                transform_folder(img_path, tgt)
+            if img_path.suffix not in [".jpg", ".png"]:
+                continue
+            img = src.file_op.load_image(img_path.as_posix(), scale=args.content_scale)
+            with torch.no_grad():
+                img = content_transform(img).unsqueeze(0).to(args.device)
+                output = style_model(img).cpu()
 
-        def add_images(path: pathlib.Path):
-            for file in path.iterdir():
-                if file.is_dir() and args.recursive:
-                    add_images(file)
-                elif file.suffix == ".jpg":
-                    content_imgs.append(file)
-        add_images(content_path)
-    else:
-        content_imgs = [content_path]
+            tgt_path = tgt_dir / img_path.name
+            src.file_op.save_image(tgt_path.as_posix(), output[0])
+        print("Finished {} in {:4.2f}s".format(src_dir, time.time() - t))
 
-    with torch.no_grad():
-        for idx, img_file in enumerate(content_imgs):
-            img = src.file_op.load_image(img_file.as_posix(), scale=args.content_scale)
-            t = time.time()
-            img = content_transform(img).unsqueeze(0).to(args.device)
-            if args.verbose:
-                print("took {:4.4f}s".format(time.time() - t))
-            output = style_model(img).cpu()
-            output_dir = output_path / img_file.parent.relative_to(content_path)
-            output_dir.mkdir(exist_ok=True, parents=True)
-            path = output_dir / img_file.name
-            src.file_op.save_image(path.as_posix(), output[0])
+    transform_folder(src_folder, tgt_folder)
 
 
 def main():
     parser = argparse.ArgumentParser(description="parser for fast-neural-style")
 
-    parser.add_argument("--content-image", type=str, required=True,
-                                 help="path to content image you want to stylize")
-    parser.add_argument("--content-scale", type=float, default=None,
-                                 help="factor for scaling down the content image")
-    parser.add_argument("--output-image", type=str, required=True,
-                                 help="path for saving the output image")
-    parser.add_argument("--model", type=str, required=True,
-                                 help="saved model to be used for stylizing the image. If file ends in .pth - PyTorch path is used, if in .onnx - Caffe2 path")
-    parser.add_argument("--cuda", type=int, required=True,
-                                 help="set it to 1 for running on GPU, 0 for CPU")
+    parser.add_argument("--src_dir", type=str, required=True, help="path to content image you want to stylize")
+    parser.add_argument("--content-scale", type=float, default=None, help="factor for scaling down the content image")
+    parser.add_argument("--tgt_dir", type=str, required=True, help="path for saving the output images")
+    parser.add_argument("--wheights", type=str, required=True, help="saved wheights to be used for stylizing the image")
+    parser.add_argument("--cuda", default=0, help="number of GPU to use. -1 for CPU.")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--norm", choices=["batch", "instance", "none"], default="instance")
     parser.add_argument("--grayscale", action="store_true", help="convert the image to grayscale before transformation")

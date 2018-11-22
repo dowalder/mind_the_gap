@@ -173,37 +173,30 @@ def train(args):
 def main():
     parser = argparse.ArgumentParser(description="parser for fast-neural-style")
 
-    parser.add_argument("--epochs", type=int, default=2,
-                                  help="number of training epochs, default is 2")
-    parser.add_argument("--batch-size", type=int, default=4,
-                                  help="batch size for training, default is 4")
+    parser.add_argument("--epochs", type=int, default=2, help="number of training epochs, default is 2")
+    parser.add_argument("--batch-size", type=int, default=4, help="batch size for training, default is 4")
     parser.add_argument("--dataset", type=str, required=True,
-                                  help="path to training dataset, the path should point to a folder "
-                                       "containing another folder with all the training images")
+                        help="path to training dataset, the path should point to a folder containing another folder "
+                             "with all the training images")
     parser.add_argument("--style-image", type=str, default="images/style-images/mosaic.jpg",
-                                  help="path to style-image")
+                        help="path to style-image or folder containing style images")
     parser.add_argument("--save-model-dir", type=str, required=True,
-                                  help="path to folder where trained model will be saved.")
+                        help="path to folder where trained model will be saved.")
     parser.add_argument("--checkpoint-model-dir", type=str, default=None,
-                                  help="path to folder where checkpoints of trained models will be saved")
+                        help="path to folder where checkpoints of trained models will be saved")
     parser.add_argument("--image-size", type=int, default=256,
-                                  help="size of training images, default is 256 X 256")
+                        help="size of training images, default is 256 X 256")
     parser.add_argument("--style-size", type=int, default=None,
-                                  help="size of style-image, default is the original size of style image")
-    parser.add_argument("--cuda", type=int, required=True,
-                                  help="index of gpu to use, -1 is cpu")
-    parser.add_argument("--seed", type=int, default=42,
-                                  help="random seed for training")
-    parser.add_argument("--content-weight", type=float, default=1e5,
-                                  help="weight for content-loss, default is 1e5")
-    parser.add_argument("--style-weight", type=float, default=1e10,
-                                  help="weight for style-loss, default is 1e10")
-    parser.add_argument("--lr", type=float, default=1e-3,
-                                  help="learning rate, default is 1e-3")
+                        help="size of style-image, default is the original size of style image")
+    parser.add_argument("--cuda", type=int, required=True,  help="index of gpu to use, -1 is cpu")
+    parser.add_argument("--seed", type=int, default=42, help="random seed for training")
+    parser.add_argument("--content-weight", type=float, default=1e5, help="weight for content-loss, default is 1e5")
+    parser.add_argument("--style-weight", type=float, default=1e10, help="weight for style-loss, default is 1e10")
+    parser.add_argument("--lr", type=float, default=1e-3, help="learning rate")
     parser.add_argument("--log-interval", type=int, default=500,
-                                  help="number of images after which the training loss is logged, default is 500")
+                        help="number of images after which the training loss is logged, default is 500")
     parser.add_argument("--checkpoint-interval", type=int, default=2000,
-                                  help="number of batches after which a checkpoint of the trained model will be created")
+                        help="number of batches after which a checkpoint of the trained model will be created")
     parser.add_argument("--use-multiple-styles", action="store_true",
                         help="training from multiple style image, not only one")
     parser.add_argument("--norm", default="instance", choices=["instance", "batch", "none"],
