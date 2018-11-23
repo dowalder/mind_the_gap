@@ -178,7 +178,7 @@ def main():
     parser.add_argument("--dataset", type=str, required=True,
                         help="path to training dataset, the path should point to a folder containing another folder "
                              "with all the training images")
-    parser.add_argument("--style-image", type=str, default="images/style-images/mosaic.jpg",
+    parser.add_argument("--style-image", type=str, required=True,
                         help="path to style-image or folder containing style images")
     parser.add_argument("--save-model-dir", type=str, required=True,
                         help="path to folder where trained model will be saved.")
